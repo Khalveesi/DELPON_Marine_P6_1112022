@@ -1,22 +1,35 @@
 const User = require("../models/User.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const joi = require("joi");
+
+const signupParamsSchema = joi.object({
+    email: joi.string().email().required(),
+    password: joi.string().required(),
+});
 
 exports.signup = (req, res) => {
-    bcrypt
-        .hash(req.body.password, 10)
-        .then((hash) => {
-            const user = new User({
-                email: req.body.email,
-                password: hash,
-            });
-            user.save()
-                .then(() =>
-                    res.status(201).json({ message: "Utilisateur créé !" })
-                )
-                .catch((error) => res.status(400).json({ error }));
+    signupParamsSchema
+        .validateAsync(req.body)
+        .then((params) => {
+            bcrypt
+                .hash(params.password, 10)
+                .then((hash) => {
+                    const user = new User({
+                        email: params.email,
+                        password: hash,
+                    });
+                    user.save()
+                        .then(() =>
+                            res
+                                .status(201)
+                                .json({ message: "Utilisateur créé !" })
+                        )
+                        .catch((error) => res.status(400).json({ error }));
+                })
+                .catch((error) => res.status(500).json({ error }));
         })
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(400).json({ error }));
 };
 
 exports.login = (req, res) => {
