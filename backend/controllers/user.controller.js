@@ -25,9 +25,17 @@ exports.signup = (req, res) => {
                                 .status(201)
                                 .json({ message: "Utilisateur créé !" })
                         )
-                        .catch((error) => res.status(400).json({ error }));
+                        .catch((error) => {
+                            console.log("user.signup save");
+                            console.log(error);
+                            res.status(400).json({ error });
+                        });
                 })
-                .catch((error) => res.status(500).json({ error }));
+                .catch((error) => {
+                    console.log("user.signup hash");
+                    console.log(error);
+                    res.status(500).json({ error });
+                });
         })
         .catch((error) => res.status(400).json({ error }));
 };

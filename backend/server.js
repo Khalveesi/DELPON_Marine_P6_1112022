@@ -4,8 +4,9 @@ const connection = require("./mongoose");
 
 connection
     .then(() => console.log("connection à MongoDB réussie !"))
-    .catch(() => {
+    .catch((e) => {
         console.log("connection à MongoDB échoué !");
+        console.log(e);
         process.exit(1);
     });
 
