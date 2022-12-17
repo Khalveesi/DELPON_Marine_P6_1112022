@@ -1,5 +1,6 @@
 const fs = require("fs");
 const joi = require("joi");
+const { set } = require("../app");
 const Sauce = require("../models/Sauce.model");
 
 const createUpdateSauceParamsSchema = joi
@@ -112,4 +113,52 @@ exports.updateSauce = (req, res) => {
         });
 };
 
-exports.likeDislikeSauce = (req, res) => {};
+exports.likeDislikeSauce = (req, res) => {
+    const isLike = req.body.like === 1;
+    const isDislike = req.body.like === -1;
+    const userId = req.auth.userId;
+
+    Sauce.findOne({ _id: req.params.id })
+        .then((sauce) => {
+            if (sauce === null) {
+                return res
+                    .status(404)
+                    .json({ message: "Sauce innexistante !" });
+            }
+            const usersLikedSet = new Set(sauce.usersLiked);
+            const usersDislikedSet = new Set(sauce.usersDisliked);
+            if (isLike) {
+                if (usersLikedSet.has(userId)) {
+                    return res
+                        .status(400)
+                        .json({ message: "Action impossible !" });
+                }
+                usersDislikedSet.delete(userId);
+                usersLikedSet.add(userId);
+            } else if (isDislike) {
+                if (usersDislikedSet.has(userId)) {
+                    return res
+                        .status(400)
+                        .json({ message: "Action impossible!" });
+                }
+                usersLikedSet.delete(userId);
+                usersDislikedSet.add(userId);
+            } else {
+                usersLikedSet.delete(userId);
+                usersDislikedSet.delete(userId);
+            }
+            sauce.usersLiked = Array.from(usersLikedSet);
+            sauce.usersDisliked = Array.from(usersDislikedSet);
+            sauce.likes = usersLikedSet.size;
+            sauce.dislikes = usersDislikedSet.size;
+            sauce
+                .save()
+                .then(() =>
+                    res
+                        .status(200)
+                        .json({ message: "likes et dislikes mis à jour" })
+                )
+                .catch((error) => res.status(400).json({ error }));
+        })
+        .catch((error) => res.status(400).json({ error }));
+};
