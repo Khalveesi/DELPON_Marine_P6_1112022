@@ -1,6 +1,5 @@
 const fs = require("fs");
 const joi = require("joi");
-const { set } = require("../app");
 const Sauce = require("../models/Sauce.model");
 
 const createUpdateSauceParamsSchema = joi
@@ -63,18 +62,14 @@ exports.getSauce = (req, res) => {
 
 exports.deleteSauce = (req, res) => {
     Sauce.findOne({ _id: req.params.id }).then((sauce) => {
-        if (sauce.userId !== req.auth.userId) {
-            res.status(403).json({ message: "Action non-autorisée" });
-        } else {
-            const fileName = sauce.imageUrl.split("/images/")[1];
-            fs.unlink(`images/${fileName}`, () => {
-                Sauce.deleteOne({ _id: req.params.id })
-                    .then(() =>
-                        res.status(200).json({ message: "Sauce supprimée" })
-                    )
-                    .catch((error) => res.status(400).json({ error }));
-            });
-        }
+        const fileName = sauce.imageUrl.split("/images/")[1];
+        fs.unlink(`images/${fileName}`, () => {
+            Sauce.deleteOne({ _id: req.params.id })
+                .then(() =>
+                    res.status(200).json({ message: "Sauce supprimée" })
+                )
+                .catch((error) => res.status(400).json({ error }));
+        });
     });
 };
 
@@ -93,18 +88,14 @@ exports.updateSauce = (req, res) => {
         .validateAsync(sauceObject)
         .then((params) => {
             Sauce.findOne({ _id: req.params.id }).then((sauce) => {
-                if (sauce.userId != req.auth.userId) {
-                    req.status(401).json({ message: "Non-autorisé" });
-                } else {
-                    Sauce.updateOne(
-                        { _id: req.params.id },
-                        { ...sauceObject, _id: req.params.id }
+                Sauce.updateOne(
+                    { _id: req.params.id },
+                    { ...sauceObject, _id: req.params.id }
+                )
+                    .then(() =>
+                        res.status(200).json({ message: "Objet modifié" })
                     )
-                        .then(() =>
-                            res.status(200).json({ message: "Objet modifié" })
-                        )
-                        .catch((error) => res.status(400).json({ error }));
-                }
+                    .catch((error) => res.status(400).json({ error }));
             });
         })
         .catch((error) => {
