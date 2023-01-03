@@ -1,4 +1,3 @@
-const e = require("express");
 const mongoose = require("mongoose");
 
 const userName = process.env.MONGODB_USERNAME;

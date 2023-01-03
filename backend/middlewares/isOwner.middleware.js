@@ -6,11 +6,11 @@ module.exports = (req, res, next) => {
             if (sauce.userId !== req.auth.userId) {
                 res.status(403).json({ message: "Action non-autorisée" });
             } else {
-next();
+                next();
             }
         });
     } catch (error) {
-        console.log('auth.middleware', {error});
+        console.log("isOwner.middleware", { error });
         res.status(401).json({ error });
     }
 };
